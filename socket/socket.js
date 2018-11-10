@@ -1,4 +1,5 @@
 const socketIO = require('socket.io')
+const moment = require('moment')
 
 const socketConfig = server => {
 
@@ -10,13 +11,13 @@ const socketConfig = server => {
     socket.broadcast.emit('newMessage', {
       from: 'Admin',
       text: 'New user joined',
-      createdAt: new Date().getTime()
+      createdAt: moment().valueOf()
     })
 
     socket.emit('newMessage', {
       from: 'Admin',
       text: 'Welcome to the app',
-      createdAt: new Date().getTime()
+      createdAt: moment().valueOf()
     })
 
     socket.on('disconnect', socket => {
@@ -26,7 +27,7 @@ const socketConfig = server => {
     socket.on('createMessage', data => {
       io.emit('newMessage', {
         ...data,
-        createdAt: new Date().getTime()
+        createdAt: moment().valueOf()
       })
     })
 
@@ -34,7 +35,7 @@ const socketConfig = server => {
       io.emit('newLocationMessage', {
         from: data.from,
         url: `https://www.google.com/maps?q=${data.lat},${data.lon}`,
-        createdAt: new Date().getTime()
+        createdAt: moment().valueOf()
       })
     })
   })
