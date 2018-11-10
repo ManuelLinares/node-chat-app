@@ -29,6 +29,14 @@ const socketConfig = server => {
         createdAt: new Date().getTime()
       })
     })
+
+    socket.on('createLocationMessage', data => {
+      io.emit('newLocationMessage', {
+        from: data.from,
+        url: `https://www.google.com/maps?q=${data.lat},${data.lon}`,
+        createdAt: new Date().getTime()
+      })
+    })
   })
 }
 
