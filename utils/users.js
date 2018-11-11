@@ -1,13 +1,13 @@
 class Users {
-  constructor () {
-    this.users = [];
+  constructor() {
+    this.users = []
   }
-  addUser (id, name, room) {
-    var user = {id, name, room};
+  addUser(id, name, room) {
+    var user = { id, name, room };
     this.users.push(user);
     return user;
   }
-  removeUser (id) {
+  removeUser(id) {
     var user = this.getUser(id);
 
     if (user) {
@@ -16,10 +16,13 @@ class Users {
 
     return user;
   }
-  getUser (id) {
+  getUser(id) {
     return this.users.filter((user) => user.id === id)[0]
   }
-  getUserList (room) {
+  getUserByNameAndRoom(name, room) {
+    return this.users.filter(user => user.name === name && user.room === room)[0]
+  }
+  getUserList(room) {
     var users = this.users.filter((user) => user.room === room);
     var namesArray = users.map((user) => user.name);
 

@@ -15,6 +15,10 @@ const socketConfig = server => {
       if (!isRealString(data.name) || !isRealString(data.room)) {
         return callback('Name and Room must be valid strings.')
       }
+      data.room = data.room.toLowerCase()
+      if (users.getUserByNameAndRoom(data.name, data.room)) {
+        return callback('User name already taken in this room.')
+      }
 
       socket.join(data.room)
       users.removeUser(socket.id)
