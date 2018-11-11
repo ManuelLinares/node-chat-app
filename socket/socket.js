@@ -1,42 +1,76 @@
 const socketIO = require('socket.io')
 const moment = require('moment')
+const { isRealString } = require('../utils/validation')
+const { Users } = require('../utils/users')
 
 const socketConfig = server => {
 
   const io = socketIO(server)
+  const users = new Users()
 
   io.on('connection', socket => {
     console.log('New user connected');
 
-    socket.broadcast.emit('newMessage', {
-      from: 'Admin',
-      text: 'New user joined',
-      createdAt: moment().valueOf()
-    })
+    socket.on('join', (data, callback) => {
+      if (!isRealString(data.name) || !isRealString(data.room)) {
+        return callback('Name and Room must be valid strings.')
+      }
 
-    socket.emit('newMessage', {
-      from: 'Admin',
-      text: 'Welcome to the app',
-      createdAt: moment().valueOf()
-    })
+      socket.join(data.room)
+      users.removeUser(socket.id)
+      users.addUser(socket.id, data.name, data.room)
 
-    socket.on('disconnect', socket => {
-      console.log('User disconnected');
-    })
+      io.to(data.room).emit('updateUsersList', users.getUserList(data.room))
 
-    socket.on('createMessage', data => {
-      io.emit('newMessage', {
-        ...data,
+      socket.broadcast.to(data.room).emit('newMessage', {
+        from: 'Admin',
+        text: `${data.name} joined`,
         createdAt: moment().valueOf()
       })
+
+      socket.emit('newMessage', {
+        from: 'Admin',
+        text: 'Welcome to the app',
+        createdAt: moment().valueOf()
+      })
+
+      callback()
+    })
+
+    socket.on('disconnect', () => {
+      const user = users.removeUser(socket.id)
+      if (user) {
+        io.to(user.room).emit('updateUsersList', users.getUserList(user.room))
+        io.to(user.room).emit('newMessage', {
+          from: 'Admin',
+          text: `${user.name} has left the room`,
+          createdAt: moment().valueOf()
+        })
+      }
+
+    })
+
+    socket.on('createMessage', (data, callback) => {
+      const user = users.getUser(socket.id)
+      if (user && isRealString(data.text)) {
+        io.to(user.room).emit('newMessage', {
+          from: user.name,
+          text: data.text,
+          createdAt: moment().valueOf()
+        })
+        callback()
+      }
     })
 
     socket.on('createLocationMessage', data => {
-      io.emit('newLocationMessage', {
-        from: data.from,
-        url: `https://www.google.com/maps?q=${data.lat},${data.lon}`,
-        createdAt: moment().valueOf()
-      })
+      const user = users.getUser(socket.id)
+      if (user) {
+        io.to(user.room).emit('newLocationMessage', {
+          from: user.name,
+          url: `https://www.google.com/maps?q=${data.lat},${data.lon}`,
+          createdAt: moment().valueOf()
+        })
+      }
     })
   })
 }
