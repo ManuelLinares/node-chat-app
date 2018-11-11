@@ -71,7 +71,7 @@ const socketConfig = server => {
       if (user) {
         io.to(user.room).emit('newLocationMessage', {
           from: user.name,
-          url: `https://www.google.com/maps?q=${data.lat},${data.lon}`,
+          url: `https://www.google.com/maps?q=${data.latitude},${data.longitud}`,
           createdAt: moment().valueOf()
         })
       }
